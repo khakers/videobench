@@ -1,4 +1,5 @@
 import os
+import pathlib
 from subprocess import call
 import subprocess
 import json
@@ -10,10 +11,14 @@ from PySide2.QtGui import QPainter
 from PySide2.QtWidgets import QMainWindow, QApplication
 from PySide2.QtCharts import QtCharts
 
+from pathlib import Path
+
 
 container_tmp_path ="/home/shared-vmaf/"
-tmp_path = "/tmp/videobench/"
-docker_cmd = "docker container run --rm  -v {}:{} docker-videobench".format(tmp_path, container_tmp_path)
+# tmp_path = "/tmp/videobench/"
+tmp_folder = Path("/tmp/videobench")
+tmp_path = str(tmp_folder)
+docker_cmd = "docker container run --rm  -v {}:{} docker-videobench".format(tmp_folder.resolve(), container_tmp_path)
 
 class videoFileInfos(object):
 	def __init__(self,
@@ -220,23 +225,23 @@ def set_vmaf_model(ref_obj, input_obj):
 	if input_obj.vmaf_model == "auto":
 
 		if ref_obj.resolution[0] > 1920: ############################################### VMAF Model
-			input_obj.vmaf_model = '/usr/local/share/model/vmaf_4k_v0.6.1.pkl'
+			input_obj.vmaf_model = '/usr/local/share/model/vmaf_4k_v0.6.1.json'
 		else:
-			input_obj.vmaf_model = '/usr/local/share/model/vmaf_float_v0.6.1.pkl'
+			input_obj.vmaf_model = '/usr/local/share/model/vmaf_float_v0.6.1.json'
 
-	elif input_obj.vmaf_model == "vmaf_float_v0.6.1.pkl":
-		input_obj.vmaf_model = '/usr/local/share/model/vmaf_float_v0.6.1.pkl'
+	elif input_obj.vmaf_model == "vmaf_float_v0.6.1.json":
+		input_obj.vmaf_model = '/usr/local/share/model/vmaf_float_v0.6.1.json'
 
-	elif input_obj.vmaf_model == "vmaf_4k_v0.6.1.pkl":
-		input_obj.vmaf_model = '/usr/local/share/model/vmaf_4k_v0.6.1.pkl'
+	elif input_obj.vmaf_model == "vmaf_4k_v0.6.1.json":
+		input_obj.vmaf_model = '/usr/local/share/model/vmaf_4k_v0.6.1.json'
 
-	elif input_obj.vmaf_model == "vmaf_float_v0.6.1.pkl:phone_model":
-		input_obj.vmaf_model = '/usr/local/share/model/vmaf_float_v0.6.1.pkl:phone_model=1'
+	elif input_obj.vmaf_model == "vmaf_float_v0.6.1.json:phone_model":
+		input_obj.vmaf_model = '/usr/local/share/model/vmaf_float_v0.6.1.json:phone_model=1'
 
 
 def set_scaling_filter(ref_obj, input_obj):
 
-	if input_obj.vmaf_model == "/usr/local/share/model/vmaf_float_v0.6.1.pkl" or input_obj.vmaf_model == "/usr/local/share/model/vmaf_float_v0.6.1.pkl:phone_model=1":
+	if input_obj.vmaf_model == "/usr/local/share/model/vmaf_float_v0.6.1.json" or input_obj.vmaf_model == "/usr/local/share/model/vmaf_float_v0.6.1.json:phone_model=1":
 	
 		if ref_obj.resolution[0] == 1920  and ref_obj.resolution[1] == 1080 :
 			ref_obj.scale_filter = "null"
@@ -249,7 +254,7 @@ def set_scaling_filter(ref_obj, input_obj):
 			input_obj.scale_filter = 'scale=1920:1080:flags={}'.format(input_obj.scale_filter)
 
 
-	if input_obj.vmaf_model == "/usr/local/share/model/vmaf_4k_v0.6.1.pkl":
+	if input_obj.vmaf_model == "/usr/local/share/model/vmaf_4k_v0.6.1.json":
 
 		if ref_obj.resolution[0] == 3840  and ref_obj.resolution[1] == 2160 :
 			ref_obj.scale_filter = "null"
@@ -326,7 +331,9 @@ def call_frames_info(args):
 	make_frames_info(*args)
 
 def make_frames_info(input_obj, loglevel): 
-	cmd = ('''{0} ffprobe -i {1}{2} -loglevel {5} -show_frames -print_format json -select_streams v > {3}frames_{4}.json'''.format(docker_cmd, container_tmp_path, input_obj.filename, tmp_path, input_obj.name, loglevel))
+	path = pathlib.Path(tmp_folder, "frames_"+input_obj.name+".json")
+	# cmd = ('''{0} ffprobe -i \"{1}{2}\" -loglevel {5} -show_frames -print_format json -select_streams v > \"{3}frames_{4}.json\"'''.format(docker_cmd, container_tmp_path, input_obj.filename, tmp_folder.resolve(), input_obj.name, loglevel))
+	cmd = ('''{0} ffprobe -i \"{1}{2}\" -loglevel {5} -show_frames -print_format json -select_streams v > \"{3}\"'''.format(docker_cmd, container_tmp_path, input_obj.filename, path, input_obj.name, loglevel))
 
 	if loglevel == "info":
 		print(cmd, flush=True)
@@ -337,7 +344,8 @@ def call_packets_info(args):
 	make_packets_info(*args)
 
 def make_packets_info(input_obj, loglevel): 
-	cmd = ('''{0} ffprobe -i {1}{2} -loglevel {5} -show_packets -print_format json -select_streams v > {3}packets_{4}.json'''.format(docker_cmd, container_tmp_path, input_obj.filename, tmp_path, input_obj.name, loglevel))
+	path = pathlib.Path(tmp_folder, "packets_"+input_obj.name+".json")
+	cmd = ('''{0} ffprobe -i \"{1}{2}\" -loglevel {5} -show_packets -print_format json -select_streams v > \"{3}\"'''.format(docker_cmd, container_tmp_path, input_obj.filename, path, input_obj.name, loglevel))
 
 	if loglevel == "info":
 		print(cmd, flush=True)
@@ -367,7 +375,7 @@ def make_quality_info(ref_obj, input_obj, loglevel):
 	print(" Calculate VMAF & PSNR (libvmaf)",flush=True)
 	print("",flush=True)
 
-	cmd = (''' {0} ffmpeg -y -loglevel {14} -stats -i {1}{2} -i {1}{3} ''' \
+	cmd = (''' {0} ffmpeg -y -loglevel {14} -stats -i \"{1}{2}\" -i \"{1}{3}\" ''' \
 		'''-lavfi "[0]{10}[refdeint];[refdeint]{12}[ref];[1]setpts=PTS{4}/TB[b];[b]{13}[c];[c][ref]libvmaf='log_fmt=json:psnr=1:model_path={7}:n_subsample={8}:log_path={1}quality_{9}.json'" ''' \
 		'''-f null - ''').format(
 		docker_cmd,

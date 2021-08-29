@@ -9,14 +9,20 @@ from shutil import rmtree
 import json
 from multiprocessing import Pool
 from videobench_functions import *
+from pathlib import Path
 
-tmp_path = "/tmp/videobench/"
+# todo This path will not work properly on windows
+tmp_folder = Path("/tmp/videobench")
+# tmp_path = "/tmp/videobench/"
+tmp_path = str(tmp_folder)
+print(tmp_path)
 #p = Pool(1)
 
 def manage_ref_file(ref_file, loglevel):
 		
 		ref_path, filename = os.path.split(ref_file)
-		copyfile(ref_file, tmp_path + filename) ################ copy ref file  to local tmp path
+		# print(tmp_folder / filename)
+		copyfile(ref_file, tmp_folder / filename) ################ copy ref file  to local tmp path
 
 		ffprobe_json = get_video_streams_info(filename, loglevel) ############ get video file info 
 		ref_obj = videoFileInfos()
@@ -37,7 +43,9 @@ def manage_ref_file(ref_file, loglevel):
 		ref_obj.resolution = [ffprobe_json['streams'][0]['width'], ffprobe_json['streams'][0]['height']]
 
 		make_packets_info(ref_obj, loglevel) ############################################################################### Bitrate from packets
-		data_json = json.load(open("{0}packets_{1}.json".format(tmp_path, ref_obj.name)))
+		# path = pathlib.Path(tmp_folder, "frames_"+input_obj.filename+".json")
+		# data_json = json.load(open("{0}packets_{1}.json".format(tmp_folder.resolve(), ref_obj.name)))
+		data_json = json.load(open(pathlib.Path(tmp_path, "packets_"+ref_obj.name+".json").resolve()))
 		pkt_size_list = []
 		for i in range(len(data_json['packets'])):
 			try:
@@ -47,7 +55,8 @@ def manage_ref_file(ref_file, loglevel):
 		ref_obj.pkt_size = pkt_size_list
 				
 		make_frames_info(ref_obj, loglevel)
-		data_json = json.load(open("{0}frames_{1}.json".format(tmp_path, ref_obj.name)))
+		data_json = json.load(pathlib.Path(tmp_path, "frames_"+ref_obj.name+".json").open())
+		# data_json = json.load(open("{0}frames_{1}.json".format(tmp_path, ref_obj.name)))
 		interlaced_frame_list = []
 		ref_obj.frame_size = []
 		for i in range(len(data_json['frames'])):
@@ -72,7 +81,8 @@ def manage_input_files(all_input, loglevel):
 		for input_file in input_list:
 
 			input_path, filename = os.path.split(input_file) 
-			copyfile(input_file, tmp_path + filename) ################################## copy input file  to local tmp path
+			# copyfile(input_file, tmp_path + filename) ################################## copy input file  to local tmp path
+			copyfile(input_file, pathlib.Path(tmp_folder, filename))
 
 			ffprobe_json = get_video_streams_info(filename, loglevel) ############################ get video file info 
 			input_obj = videoFileInfos()
@@ -104,7 +114,8 @@ def manage_input_files(all_input, loglevel):
 	#p.map(call_frames_info, arguments)
 
 	for input_obj in list_input_obj:
-		data_json = json.load(open("{0}packets_{1}.json".format(tmp_path, input_obj.name)))
+		data_json = json.load(pathlib.Path(tmp_folder, "packets_"+input_obj.name+".json").open())
+		# data_json = json.load(open("{0}packets_{1}.json".format(tmp_path, input_obj.name)))
 		pkt_size_list = []
 		for i in range(len(data_json['packets'])):
 			try:
@@ -112,8 +123,8 @@ def manage_input_files(all_input, loglevel):
 			except Exception:
 				pass
 		input_obj.pkt_size = pkt_size_list
-		
-		data_json = json.load(open("{0}frames_{1}.json".format(tmp_path, input_obj.name)))
+		data_json = json.load(pathlib.Path(tmp_folder, "frames_"+input_obj.name+".json").open())
+		# data_json = json.load(open("{0}frames_{1}.json".format(tmp_path, input_obj.name)))
 		interlaced_frame_list = []
 		input_obj.frame_size = []
 		for i in range(len(data_json['frames'])):
@@ -163,8 +174,8 @@ if __name__ == '__main__':
 	vmaf_model = args.vmaf_model
 	loglevel = args.loglevel
 
-
-	os.makedirs(tmp_path, exist_ok=True)
+	# This works fine
+	os.makedirs("/tmp/videobench", exist_ok=True)
 
 	if ref_file: ##################################################################### ref_file to ref_obj
 
@@ -220,16 +231,22 @@ if __name__ == '__main__':
 		for input_obj in list_input_obj: ################################### read quality json 
 
 			try:
-				data_json = json.load(open("{0}quality_{1}.json".format( tmp_path , input_obj.name)))
+				# data_json = json.load(open("{0}quality_{1}.json".format( tmp_path , input_obj.name)))
+				data_json = json.load(pathlib.Path(tmp_folder, "quality_"+input_obj.name+".json").open())
 			except:
-				with open("{0}quality_{1}.json".format( tmp_path , input_obj.name), 'r') as file : #################### replace nan by 0
+				# with open("{0}quality_{1}.json".format( tmp_path , input_obj.name), 'r') as file : #################### replace nan by 0
+				# 	filedata = file.read()
+				with pathlib.Path(tmp_folder, "quality_"+input_obj.name+".json").open('r') as file : #################### replace nan by 0
 					filedata = file.read()
 				# Replace the target string
 				filedata = filedata.replace("nan", "0")
 				# Write the file out again
-				with open("{0}quality_{1}.json".format( tmp_path , input_obj.name), 'w') as file:
+				# with open("{0}quality_{1}.json".format( tmp_path , input_obj.name), 'w') as file:
+				# 	file.write(filedata)
+				with pathlib.Path(tmp_folder, "quality_"+input_obj.name+".json").open('w') as file:
 					file.write(filedata)
-				data_json = json.load(open("{0}quality_{1}.json".format( tmp_path , input_obj.name)))
+				data_json = json.load(pathlib.Path(tmp_folder, "quality_"+input_obj.name+".json").open())
+				# data_json = json.load(open("{0}quality_{1}.json".format( tmp_path , input_obj.name)))
 
 			vmaf_values = []
 			psnr_values = []
