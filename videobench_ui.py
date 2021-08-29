@@ -38,8 +38,9 @@ class VideoAnalyzer(QtWidgets.QWidget, Ui_fenetrePrincipale):
 
 	def Init_values(self):
 		self.currentPath = os.path.dirname(__file__)
-		# not sure if changing this to python will cause problems on linux
-		self.python_path = "python"
+		self.python_path = "python3"
+		if os.name == 'nt':
+			self.python_path = "python"
 		self.videoAnalyzerPath = os.path.dirname(os.path.abspath(__file__)) + "/videobench.py"
 		self.list_obj=[]
 		self.jsonFilesNames = []
@@ -620,14 +621,23 @@ class VideoAnalyzer(QtWidgets.QWidget, Ui_fenetrePrincipale):
 			cmd = ("{0} -i {1} -loglevel {2}".format(self.videoAnalyzerPath, inputpath_list_str, loglevel))
 			cmd_list = cmd.split(" ") 
 		else:
-			cmd = ("{0} -ref {1} -i {2} -sync {3} -sw {4} -deint {5} -subsampling {6} -scale {7} -vmaf_model {8} -loglevel {9}".format(self.videoAnalyzerPath, self.ref_path, inputpath_list_str, sync, sw, deint_setting, subsampling_setting, scale_setting, vmaf_model_setting, loglevel))
-			cmd_list = cmd.split(" ") 
+			cmd_list = [
+				self.videoAnalyzerPath, 
+				'-ref', f'{self.ref_path}', 
+				'-i', f'{inputpath_list_str}', 
+				'-sync', sync,
+				'-sw', str(sw),
+				'-deint', deint_setting,
+				'-subsampling', subsampling_setting,
+				'-scale', scale_setting,
+				'-vmaf_model', vmaf_model_setting,
+				'-loglevel', loglevel]
+			cmd = " ".join(cmd_list)
 		
 		self.te_operation.append("*****************************")
 		self.te_operation.append("STARTING VIDEO BENCH")
 		self.te_operation.append(self.python_path + " " + cmd)
 		self.te_operation.append("*****************************")
-
 
 		process = QtCore.QProcess()
 		process.setProcessChannelMode(QtCore.QProcess.MergedChannels)
