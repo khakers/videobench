@@ -1,9 +1,9 @@
-FROM ubuntu
+FROM ubuntu:20.04
 
 ENV TZ=UTC
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-RUN apt update
+RUN apt-get update
 
 RUN \
 	apt-get install -y build-essential git make \
@@ -14,12 +14,14 @@ RUN \
           python3-pip \
           python3-setuptools \
           python3-tk \
-    && pip3 install --upgrade pip \
-    && pip install numpy scipy matplotlib notebook pandas sympy nose scikit-learn scikit-image h5py sureal meson cython \
-	&& mkdir /tmp/vmaf \
+    && pip3 install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir numpy scipy matplotlib notebook pandas sympy nose scikit-learn scikit-image h5py sureal meson cython
+
+RUN mkdir /tmp/vmaf \
 	&& cd /tmp/vmaf \
 	&& git clone https://github.com/Netflix/vmaf.git . \
 	&& make \
+	&& cp -r ./model /usr/local/share/ \
 	&& make install \
         && rm -r /tmp/vmaf
 
