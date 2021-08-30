@@ -237,7 +237,6 @@ class VideoAnalyzer(QtWidgets.QWidget, Ui_fenetrePrincipale):
 				pass
 
 	def add_lineSeries(self, input_widget):
-
 		if self.radio_time.isChecked():
 			if input_widget.checkState() == QtCore.Qt.CheckState.Checked :
 				self.add_lineSeries_seconds(input_widget)
@@ -258,7 +257,7 @@ class VideoAnalyzer(QtWidgets.QWidget, Ui_fenetrePrincipale):
 
 	def add_lineSeries_seconds(self, input_widget):
 
-		name, ext = input_widget.objectName().split('.')
+		name = input_widget.objectName()[:input_widget.objectName().rindex('.')]
 
 
 		for obj in self.list_obj:
@@ -305,7 +304,8 @@ class VideoAnalyzer(QtWidgets.QWidget, Ui_fenetrePrincipale):
 			name, ext = ls.name().split('.')
 			ls_name_list.append(name) 
 
-		name, ext = input_widget.objectName().split('.')
+		name = input_widget.objectName()[:input_widget.objectName().rindex('.')]
+
 
 		for obj in self.list_obj:
 
@@ -331,7 +331,7 @@ class VideoAnalyzer(QtWidgets.QWidget, Ui_fenetrePrincipale):
 
 	def add_lineSeries_frames(self, input_widget):
 
-		name, ext = input_widget.objectName().split('.')
+		name = input_widget.objectName()[:input_widget.objectName().rindex('.')]
 
 		for obj in self.list_obj:
 			if obj.name == name:
@@ -460,7 +460,8 @@ class VideoAnalyzer(QtWidgets.QWidget, Ui_fenetrePrincipale):
 
 	def add_barset_to_barSeries(self, input_widget):
 
-		name, ext = input_widget.objectName().split('.')
+		name = input_widget.objectName()[:input_widget.objectName().rindex('.')]
+
 		for obj in self.list_obj:
 			if obj.name == name:
 
@@ -481,7 +482,7 @@ class VideoAnalyzer(QtWidgets.QWidget, Ui_fenetrePrincipale):
 
 	def remove_barset_to_barSeries(self, input_widget):
 
-		name, ext = input_widget.objectName().split('.')
+		name = input_widget.objectName()[:input_widget.objectName().rindex('.')]
 		for obj in self.list_obj:
 			if obj.name == name:
 				self.vmaf_barSeries.take(self.vmafbs_dict[obj.filename])
