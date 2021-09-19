@@ -301,7 +301,7 @@ class VideoAnalyzer(QtWidgets.QWidget, Ui_fenetrePrincipale):
 		ls_list = self.chart_bitrate.series() ################ pas top 
 		ls_name_list = []
 		for ls in ls_list :
-			name, ext = ls.name().split('.')
+			name = ls.name()[:input_widget.objectName().rindex('.')]
 			ls_name_list.append(name) 
 
 		name = input_widget.objectName()[:input_widget.objectName().rindex('.')]
@@ -375,10 +375,10 @@ class VideoAnalyzer(QtWidgets.QWidget, Ui_fenetrePrincipale):
 		ls_list = self.chart_bitrate.series() ################ pas top 
 		ls_name_list = []
 		for ls in ls_list :
-			name, ext = ls.name().split('.')
+			name = ls.name()[:input_widget.objectName().rindex('.')]
 			ls_name_list.append(name) 
 
-		name, ext = input_widget.objectName().split('.')
+		name = input_widget.objectName()[:input_widget.objectName().rindex('.')]
 
 		for obj in self.list_obj:
 

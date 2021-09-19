@@ -66,7 +66,7 @@ brew install python3
 
 #### Install pyside2
 
-```
+```bash
 brew install python3-pip
 pip3 install pyside2
 ```
@@ -75,7 +75,7 @@ pip3 install pyside2
 
 #### Install Docker
 
-For be able to use Docker on windows you need to have Windows 10 64bit Pro, Enterprise or Education
+To be able to use Docker on windows you need to have Windows 10 64bit Pro, Enterprise, Education, or have WSL2 installed.
 
 [Install Docker](https://docs.docker.com/)
 
@@ -136,22 +136,3 @@ help :
 ```
 python3 videobench.py -h
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
